@@ -1,5 +1,7 @@
 # Risk-Neutral Density Estimation from Equity Options
 
+[![CI](https://github.com/rxj0102/Risk-Neutral-Density/actions/workflows/ci.yml/badge.svg)](https://github.com/rxj0102/Risk-Neutral-Density/actions/workflows/ci.yml)
+
 Extract and compare the market-implied risk-neutral density (RND) from live AAPL option chains using three methods — Breeden-Litzenberger, SVI, and SSVI — and benchmark it against the historical return distribution.
 
 ---
