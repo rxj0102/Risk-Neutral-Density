@@ -2,13 +2,13 @@
 
 [![CI](https://github.com/rxj0102/Risk-Neutral-Density/actions/workflows/ci.yml/badge.svg)](https://github.com/rxj0102/Risk-Neutral-Density/actions/workflows/ci.yml)
 
-Extract and compare the market-implied risk-neutral density (RND) from live AAPL option chains using three methods — Breeden-Litzenberger, SVI, and SSVI — and benchmark it against the historical return distribution.
+Extract and compare the market-implied risk-neutral density (RND) from live AAPL option chains using three methods - Breeden-Litzenberger, SVI, and SSVI - and benchmark it against the historical return distribution.
 
 ---
 
 ## Problem & Methodology
 
-Options prices embed the market's full probability distribution over future returns — the **risk-neutral density** (RND) under the risk-neutral measure Q.  
+Options prices embed the market's full probability distribution over future returns - the **risk-neutral density** (RND) under the risk-neutral measure Q.  
 This project recovers that distribution via three increasingly structured approaches:
 
 | Method | Type | Reference |
@@ -32,14 +32,16 @@ The pipeline:
 
 | Metric | B-L | SVI | SSVI | Historical (P) |
 |---|---|---|---|---|
-| ATM IV | — | 30.81% | 30.61% | — |
+| ATM IV | - | 30.81% | 30.61% | - |
 | Mean S_T | $254.31 | $249.69 | $249.73 | $259.19 |
 | Std S_T | $19.59 | $29.05 | $28.92 | $22.47 |
 | Skewness | −0.59 | −0.34 | −0.37 | −0.02 |
 | 95% VaR | $35.58 | $55.68 | $55.87 | $30.68 |
 | 95% CVaR | $47.47 | $59.70 | $59.80 | $41.13 |
 
-**VRP**: Implied vol (SSVI) = 30.61% vs. realised = 27.37% → **+3.24 pp (1.25× variance ratio) → SELL VOL signal.**  
+**VRP**: Implied vol (SSVI) = 30.61% vs. realised = 27.37%, a gap of 3.24 points (1.25x variance ratio).
+
+> **Caveats.** These figures come from one live option-chain snapshot taken in April 2026 and stored in `notebooks/04_risk_neutral_density.ipynb`; a rerun uses a new snapshot and will give different numbers. A single positive variance risk premium is the normal state of equity options, so it is not by itself a trading signal, and no backtest of a short-volatility rule is included here. The Breeden-Litzenberger standard deviation ($19.59) is well below the SVI/SSVI value ($29) because the model-free density is truncated to the observed strike range, so tail metrics are not directly comparable across methods.  
 The implied Q-density is left-skewed and fat-tailed relative to the empirical P-density, quantifying the crash risk premium embedded in options prices.
 
 ---
@@ -47,11 +49,11 @@ The implied Q-density is left-skewed and fat-tailed relative to the empirical P-
 ## Tech Stack
 
 - **Python 3.10+**
-- `numpy`, `scipy` — numerical integration, optimisation, spline interpolation
-- `pandas` — option chain handling
-- `yfinance` — live market data (options, rates, dividends)
-- `matplotlib` — visualisation
-- `pytest` — unit testing
+- `numpy`, `scipy` - numerical integration, optimisation, spline interpolation
+- `pandas` - option chain handling
+- `yfinance` - live market data (options, rates, dividends)
+- `matplotlib` - visualisation
+- `pytest` - unit testing
 
 ---
 
@@ -97,7 +99,7 @@ cd notebooks
 jupyter notebook 01_risk_neutral_density.ipynb
 ```
 
-The notebook fetches live data from Yahoo Finance on execution — no local data files required.
+The notebook fetches live data from Yahoo Finance on execution - no local data files required.
 
 ### 3. Run the test suite
 
