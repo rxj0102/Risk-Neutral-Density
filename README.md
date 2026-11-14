@@ -10,7 +10,7 @@ Extract and compare the market-implied risk-neutral density (RND) from live AAPL
 
 ### The Core Idea: What Does the Market Think Will Happen?
 
-Imagine you want to know what professional traders think the price of Apple stock (AAPL) will be in one month. You could ask them, but they won't tell you their private forecasts. However, they *do* trade options — and option prices secretly encode their collective probability beliefs about the future stock price.
+Imagine you want to know what professional traders think the price of Apple stock (AAPL) will be in one month. You could ask them, but they won't tell you their private forecasts. However, they *do* trade options, and option prices secretly encode their collective probability beliefs about the future stock price.
 
 This project **reverse-engineers those beliefs** from live option prices, producing a full probability curve called the **Risk-Neutral Density (RND)**. Think of the RND as a histogram showing how likely each future stock price is, according to the options market.
 
@@ -29,11 +29,11 @@ The price you pay today for this right (the **option premium**) depends on how l
 
 #### What is Implied Volatility?
 
-The **Black-Scholes model** is the standard formula for pricing options. It takes inputs like current stock price, strike, time, and interest rate — plus one unknown: **volatility** (how wildly the stock might move).
+The **Black-Scholes model** is the standard formula for pricing options. It takes inputs like current stock price, strike, time, and interest rate, plus one unknown: **volatility** (how wildly the stock might move).
 
 If you *observe* the market price of an option and *solve backwards* for the volatility that the Black-Scholes formula would need to produce that price, you get the **implied volatility (IV)**. This is the market's forecast of future price turbulence.
 
-Plotting IV across different strikes gives you the **volatility smile** or **volatility skew** — which looks like a curved line rather than a flat one. That curvature tells us the market assigns *more* probability to large drops than a simple normal distribution would predict (crash risk premium).
+Plotting IV across different strikes gives you the **volatility smile** or **volatility skew**, which looks like a curved line rather than a flat one. That curvature tells us the market assigns *more* probability to large drops than a simple normal distribution would predict (crash risk premium).
 
 #### What is the Forward Price?
 
@@ -65,7 +65,7 @@ This centering makes the math cleaner and symmetrical.
 
 #### What is Total Variance?
 
-**Total variance** is `w = σ² × τ` — it combines implied volatility `σ` and time `τ` into one number. Fitting models in total-variance space is numerically more stable than fitting in volatility space directly.
+**Total variance** is `w = σ² × τ`: it combines implied volatility `σ` and time `τ` into one number. Fitting models in total-variance space is numerically more stable than fitting in volatility space directly.
 
 ---
 
@@ -89,9 +89,9 @@ Here is what the code does from start to finish:
 7. Compute tail risk metrics and Variance Risk Premium (metrics.py)
 ```
 
-**Step 3 — OTM Stitching:** Out-of-the-money options have tighter bid-ask spreads (cheaper, more liquid). So we use OTM *puts* for strikes below the forward, and OTM *calls* for strikes above. This gives the cleanest price signal.
+**Step 3; OTM Stitching:** Out-of-the-money options have tighter bid-ask spreads (cheaper, more liquid). So we use OTM *puts* for strikes below the forward, and OTM *calls* for strikes above. This gives the cleanest price signal.
 
-**Step 4 — Implied Vol:** For each option, the code uses **Brent's method** (a robust root-finding algorithm) to solve for the `σ` that makes the Black-Scholes formula match the observed market price.
+**Step 4; Implied Vol:** For each option, the code uses **Brent's method** (a robust root-finding algorithm) to solve for the `σ` that makes the Black-Scholes formula match the observed market price.
 
 ---
 
@@ -114,7 +114,7 @@ f^Q(K) = e^(rτ) × ∂²C/∂K²
 4. Multiplies by `e^(rτ)` to discount back from expiry.
 5. Clips negative values to zero (probabilities can't be negative) and normalises so the total area = 1.
 
-**Pros:** No model assumptions — purely driven by market prices.  
+**Pros:** No model assumptions; purely driven by market prices.  
 **Cons:** Noisy. Sparse market data means the spline can wiggle.
 
 #### Method 2: SVI (Stochastic Volatility Inspired)
@@ -130,7 +130,7 @@ w(k) = a + b × [ρ(k − m) + √((k − m)² + σ²)]
 **What each parameter means:**
 - `a`: the overall level of variance (shifts the whole curve up/down)
 - `b`: controls how steeply the wings of the smile rise
-- `ρ` (rho): the **skew** — negative values tilt the smile leftward, meaning puts are more expensive (crash fear)
+- `ρ` (rho): the **skew**: negative values tilt the smile leftward, meaning puts are more expensive (crash fear)
 - `m`: the log-moneyness where the minimum occurs
 - `σ` (sigma): how curved/smooth the bottom of the smile is
 
@@ -138,7 +138,7 @@ w(k) = a + b × [ρ(k − m) + √((k − m)² + σ²)]
 
 **Once fitted:** The smooth total-variance curve is used to compute call prices on a fine grid, then the Breeden-Litzenberger second-derivative formula is applied to get the RND.
 
-#### Method 3: SSVI (Surface SVI — Arbitrage-Free)
+#### Method 3: SSVI (Surface SVI: Arbitrage-Free)
 
 **The idea (Gatheral & Jacquier, 2014):** SVI has 5 free parameters, which gives flexibility but no guarantee the resulting density is arbitrage-free (i.e., it could theoretically produce negative probabilities across expiries). SSVI is a restricted version with only **3 parameters** that is mathematically guaranteed to be **free of butterfly arbitrage**:
 
@@ -159,9 +159,9 @@ w(k) = (θ/2) × [1 + ρφk + √((φk + ρ)² + 1 − ρ²)]
 
 ### The Historical (Real-World) Density
 
-The RND above is measured under the **risk-neutral (Q) measure** — the world where all assets earn the risk-free rate (a mathematical fiction used for pricing). But investors actually live in the **real-world (P) measure**.
+The RND above is measured under the **risk-neutral (Q) measure**: the world where all assets earn the risk-free rate (a mathematical fiction used for pricing). But investors actually live in the **real-world (P) measure**.
 
-To compare, the code also builds a **historical density** from 5 years of actual daily stock returns, computing overlapping 30-day log-returns and smoothing them with **Kernel Density Estimation (KDE)** — essentially a smooth histogram.
+To compare, the code also builds a **historical density** from 5 years of actual daily stock returns, computing overlapping 30-day log-returns and smoothing them with **Kernel Density Estimation (KDE)**: essentially a smooth histogram.
 
 The gap between Q and P reveals the **crash risk premium**: options traders demand extra payment for insuring against tail events, making the Q-density more left-skewed and fat-tailed than historical experience alone would justify.
 
@@ -183,7 +183,7 @@ After computing each density, `metrics.py` computes:
 | **VaR 95%** | Dollar loss that is exceeded only 5% of the time |
 | **CVaR 95%** | *Average* dollar loss in the worst 5% of scenarios |
 
-**VaR** (Value at Risk) asks: "What is the worst loss I'd expect 95% of the time?" CVaR (Conditional VaR, also called Expected Shortfall) asks the harder question: "If I *am* in that bad 5%, how bad is it on average?" CVaR is more conservative and preferred by regulators.
+**VaR** (Value at Risk) asks: *What is the worst loss I'd expect 95% of the time?* CVaR (Conditional VaR, also called Expected Shortfall) asks the harder question: *If I *am* in that bad 5%, how bad is it on average?* CVaR is more conservative and preferred by regulators.
 
 ---
 
@@ -196,7 +196,7 @@ VRP (additive) = Implied Vol − Realised Vol
 VRP (ratio)    = (Implied Vol / Realised Vol)²
 ```
 
-If implied vol (30.61%) > realised vol (27.37%), the market is *overpaying* for volatility insurance. This is a signal to **sell volatility** (e.g. sell straddles, write options). The VRP is the structural reason why options sellers earn a risk premium over time — they bear the risk of rare crashes.
+If implied vol (30.61%) > realised vol (27.37%), the market is *overpaying* for volatility insurance. This is a signal to **sell volatility** (e.g. sell straddles, write options). The VRP is the structural reason why options sellers earn a risk premium over time: they bear the risk of rare crashes.
 
 ---
 
